@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.idp.web.access.dao.AccessLogDao">
+
+	<parameterMap id="parameterMap" type="com.idp.web.access.entity.AccessLog"></parameterMap>
+	<resultMap id="resultMap" type="com.idp.web.access.entity.AccessLog">
+		<result property="accessLogId" column="access_log_id"/>
+		<result property="accessLogTime" column="access_log_time"/>
+		<result property="userId" column="user_id"/>
+		<result property="accessIp" column="access_ip"/>
+		<result property="accessUrl" column="access_url"/>
+		<result property="sysUserName" column="name"/>
+	</resultMap>
+	
+	<sql id="columnSql">
+		<trim suffixOverrides=",">
+			t.access_log_id,
+			t.access_log_time,
+			t.user_id,
+			t.access_ip,
+			t.access_url,
+			u.name,
+	 	</trim>
+	</sql>
+	
+	<select id="find" parameterMap="parameterMap" resultMap="resultMap">
+		select
+			<include refid="columnSql"></include>
+		from access_log t left join sys_user u on u.id = t.user_id
+		<where>
+		</where>
+	</select>
+	
+	<select id="getById" parameterType="java.lang.String" resultMap="resultMap">
+		select
+			<include refid="columnSql"></include>
+		from access_log t
+		left join sys_user u on u.id = t.user_id
+		where t.access_log_id = #{value}
+	</select>
+	
+	<insert id="add" parameterMap="parameterMap">
+		insert into access_log
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			access_log_id,
+			access_log_time,
+			user_id,
+			access_ip,
+			access_url,
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			#{accessLogId},
+			#{accessLogTime},
+			#{userId},
+			#{accessIp},
+			#{accessUrl},
+		</trim>
+	</insert>
+	
+	<insert id="batchAdd" parameterType="java.util.List">
+		insert into access_log
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			access_log_id,
+			access_log_time,
+			user_id,
+			access_ip,
+			access_url,
+		</trim>
+		values
+		<foreach collection="list" item="item" separator=",">
+			<trim prefix="(" suffix=")" suffixOverrides=",">
+				#{item.accessLogId},
+				#{item.accessLogTime},
+				#{item.userId},
+				#{item.accessIp},
+				#{item.accessUrl},
+			</trim>
+		</foreach>
+	</insert>
+	
+	<update id="update" parameterMap="parameterMap">
+		update access_log
+		<set>
+			access_log_time = #{accessLogTime},
+			user_id = #{userId},
+			access_ip = #{accessIp},
+			access_url = #{accessUrl},
+		</set>
+		where access_log_id = #{accessLogId}
+	</update>
+	
+	<update id="updateNotNull" parameterMap="parameterMap">
+		update access_log
+		<set>
+			<if test="accessLogTime != null">
+			access_log_time = #{accessLogTime},
+			</if>
+			<if test="userId != null">
+			user_id = #{userId},
+			</if>
+			<if test="accessIp != null">
+			access_ip = #{accessIp},
+			</if>
+			<if test="accessUrl != null">
+			access_url = #{accessUrl},
+			</if>
+		</set>
+		where access_log_id = #{accessLogId}
+	</update>
+	
+	
+	<delete id="batchDelete" parameterType="java.util.List">
+		delete from access_log where access_log_id in
+		<foreach collection="list" item="item" open="(" close=")" separator=",">
+			#{item}
+		</foreach>
+	</delete>
+	
+</mapper>

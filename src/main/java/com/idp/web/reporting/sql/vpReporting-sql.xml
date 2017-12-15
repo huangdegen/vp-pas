@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.idp.web.reporting.dao.VpReportingDao">
+    <parameterMap id="parameterMap" type="com.idp.web.reporting.entity.VpReporting"></parameterMap>
+    <resultMap id="resultMap" type="com.idp.web.reporting.entity.VpReporting">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="reportingName" column="reporting_name"/>
+        <result property="reportingDate" column="reporting_date"/>
+        <result property="reportingProject" column="reporting_project"/>
+        <result property="projectsCode" column="reporting_project"/>
+        <result property="reportingContent" column="reporting_content"/>
+        <result property="reportingTime" column="reporting_time"/>
+        <result property="isCommit" column="is_commit"/>
+        <result property="orgId" column="org_id"/>
+        <result property="orgName" column="org_name"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <association property="userCode" column="user_id" select="getUserById"></association>
+    </resultMap>
+
+    <parameterMap id="parameterStatisticalMap" type="com.idp.web.reporting.entity.VpReporting"></parameterMap>
+    <resultMap id="StatisticalMap" type="com.idp.web.reporting.entity.WorkingHoursStatistical">
+        <result property="userName" column="userName"/>
+        <result property="days" column="days"/>
+        <result property="totalWorkingHoursUserName" column="totalWorkingHoursUserName"/>
+        <result property="projectsCode" column="reporting_project"/>
+        <result property="projectName" column="projectName"/>
+        <result property="totalWorkingHoursProject" column="totalWorkingHoursProject"/>
+        <result property="percentage" column="percentage"/>
+        <result property="totalMonthProjectCoefficient" column="totalMonthProjectCoefficient"/>
+    </resultMap>
+
+    <sql id="columnSql">
+        <trim suffixOverrides=",">
+            t.id,
+            t.user_id,
+            t.reporting_name,
+            t.reporting_date,
+            t.org_id,
+            t.org_name,
+            t.start_time,
+            t.end_time,
+            t.reporting_project,
+            t.reporting_content,
+            t.reporting_time,
+            t.is_commit,
+        </trim>
+    </sql>
+    <select id="getUserById" parameterType="java.lang.String" resultType="java.lang.String">
+		select
+		t.user_code
+		from sys_user t
+		where t.id = #{value}
+	</select>
+    <select id="find" parameterMap="parameterMap" resultMap="resultMap">
+        select
+        <include refid="columnSql"></include>
+        from vp_reporting t
+        <where>
+            <if test="reportingName != null and reportingName != ''">
+                and t.reporting_name like concat('%',#{reportingName},'%')
+            </if>
+            <if test="orgId != null and orgId != ''">
+                and LEFT(t.org_id,LENGTH(#{orgId})) = #{orgId}
+            </if>
+            <if test="reportingDate != null and reportingDate != ''">
+                and t.reporting_date = #{reportingDate}
+            </if>
+            <!--<if test="reportingDateStart != null and reportingDateStart != ''">
+                and t.reporting_date >= #{reportingDateStart}
+            </if>
+            <if test="reportingDateEnd != null and reportingDateEnd != ''">
+                and t.reporting_date <![CDATA[<]]> #{reportingDateEnd}
+            </if>-->
+            <if test="reportingProject != null and reportingProject != ''">
+                AND t.reporting_project LIKE CONCAT ('%',#{reportingProject},'%')
+            </if>
+            <if test="userCode!=null and userCode!= ''">
+                AND EXISTS (
+                SELECT 1 FROM sys_user u where u.id = t.user_id and
+                LEFT(u.user_code,LENGTH(#{userCode})) = #{userCode}
+                )
+            </if>
+            order by t.reporting_date desc
+        </where>
+    </select>
+
+
+    <select id="findExportAll" parameterMap="parameterMap" resultMap="resultMap">
+        select
+        <include refid="columnSql"></include>
+        from vp_reporting t
+        WHERE
+        PERIOD_DIFF(
+        date_format(now(), '%Y%m'),
+        date_format(reporting_date, '%Y%m')
+        ) = 1
+        ORDER BY
+        t.reporting_date DESC
+    </select>
+
+
+    <select id="getById" parameterType="java.lang.String" resultMap="resultMap">
+        select
+        <include refid="columnSql"></include>
+        from vp_reporting t
+        where t.id = #{value}
+    </select>
+
+    <insert id="add" parameterMap="parameterMap">
+        insert into vp_reporting
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            user_id,
+            reporting_name,
+            org_id,
+            org_name,
+            reporting_date,
+            start_time,
+            end_time,
+            reporting_project,
+            reporting_content,
+            reporting_time,
+            is_commit,
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id},
+            #{userId},
+            #{reportingName},
+            #{orgId},
+            #{orgName},
+            #{reportingDate},
+            #{startTime},
+            #{endTime},
+            #{reportingProject},
+            #{reportingContent},
+            #{reportingTime},
+            #{isCommit},
+        </trim>
+    </insert>
+
+    <insert id="batchAdd" parameterType="java.util.List">
+        insert into vp_reporting
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            user_id,
+            reporting_name,
+            org_id,
+            org_name,
+            reporting_date,
+            start_time,
+            end_time,
+            reporting_project,
+            reporting_content,
+            reporting_time,
+            is_commit,
+        </trim>
+        values
+        <foreach collection="list" item="item" separator=",">
+            <trim prefix="(" suffix=")" suffixOverrides=",">
+                #{item.id},
+                #{item.userId},
+                #{item.reportingName},
+                #{item.orgId},
+                #{item.orgName},
+                #{item.reportingDate},
+                #{item.startTime},
+                #{item.endTime},
+                #{item.reportingProject},
+                #{item.reportingContent},
+                #{item.reportingTime},
+                #{item.isCommit},
+            </trim>
+        </foreach>
+    </insert>
+
+    <update id="update" parameterMap="parameterMap">
+        update vp_reporting
+        <set>
+            user_id = #{userId},
+            reporting_name = #{reportingName},
+            org_id = #{orgId},
+            org_name = #{orgName},
+            reporting_date = #{reportingDate},
+            start_time = #{startTime},
+            end_time = #{endTime},
+            reporting_project = #{reportingProject},
+            reporting_content = #{reportingContent},
+            reporting_time = #{reportingTime},
+            is_commit =#{isCommit},
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="updateNotNull" parameterMap="parameterMap">
+        update vp_reporting
+        <set>
+            <if test="userId != null">
+                user_id = #{userId},
+            </if>
+            <if test="reportingName != null">
+                reporting_name = #{reportingName},
+            </if>
+            <if test="orgId != null">
+                org_id = #{orgId},
+            </if>
+            <if test="orgName != null">
+                org_name = #{orgName},
+            </if>
+            <if test="reportingDate != null">
+                reporting_date = #{reportingDate},
+            </if>
+            <if test="startTime != null">
+                start_time = #{startTime},
+            </if>
+            <if test="endTime != null">
+                end_time = #{endTime},
+            </if>
+            <if test="reportingProject != null">
+                reporting_project = #{reportingProject},
+            </if>
+            <if test="reportingContent != null">
+                reporting_content = #{reportingContent},
+            </if>
+            <if test="reportingTime != null">
+                reporting_time = #{reportingTime},
+            </if>
+            <if test="isCommit != null">
+                is_commit = #{isCommit},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+		delete from vp_reporting where id = #{value}
+	</delete>
+
+    <delete id="batchDelete" parameterType="java.util.List">
+        delete from vp_reporting where id in
+        <foreach collection="list" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </delete>
+
+    <select id="getSumReportingTime" resultType="java.lang.Integer">
+        SELECT IFNULL(sum(reporting_time),0) from vp_reporting t
+        where t.user_id = #{userId} and t.reporting_date = #{reportingDate}
+        <if test="id != null">
+            and t.id != #{id}
+        </if>
+    </select>
+
+    <select id="statisticalHours" parameterMap="parameterStatisticalMap" resultMap="StatisticalMap">
+        SELECT
+            u.`name` AS userName,
+            FORMAT(tt.rt / 8, 2) AS days,
+            tt.rt AS totalWorkingHoursUserName,
+            d.`name` AS projectName,
+            t.totalreportingtime AS totalWorkingHoursProject,
+            tt.reporting_project,
+            FORMAT(
+                tt.rt / t.totalreportingtime * 100,
+                2
+            ) AS percentage,
+            FORMAT(
+                days / (SELECT `code` from sys_dictionary
+                where `group_id` = '641aa555e8da40aca483ad65fc7b902c'
+                and  `name` =  date_format(now(), '%Y%m') - 1) ,
+                2
+            ) AS totalMonthProjectCoefficient
+        FROM
+            (
+                SELECT
+                    user_id,
+                    count(1) days,
+                    sum(reporting_time) rt,
+                    reporting_project
+                FROM
+                    vp_reporting
+                WHERE
+                    PERIOD_DIFF(
+                        date_format(now(), '%Y%m'),
+                        date_format(reporting_date, '%Y%m')
+                    ) = 1
+                GROUP BY
+                    reporting_project,
+                    user_id
+
+            ) tt
+        LEFT JOIN (
+            SELECT
+                SUM(reporting_time) AS totalreportingtime,
+                reporting_project
+            FROM
+                vp_reporting
+            WHERE
+                PERIOD_DIFF(
+                    date_format(now(), '%Y%m'),
+                    date_format(reporting_date, '%Y%m')
+                ) = 1
+            GROUP BY
+                reporting_project
+        ) t ON t.reporting_project = tt.reporting_project
+        LEFT JOIN sys_user u ON u.id = tt.user_id
+        LEFT JOIN sys_dictionary d ON d. CODE = tt.reporting_project
+    </select>
+</mapper>

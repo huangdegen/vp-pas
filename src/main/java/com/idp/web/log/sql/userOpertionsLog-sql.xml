@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.idp.web.log.dao.UserOpertionsLogDao">
+
+	<parameterMap id="parameterMap" type="com.idp.web.log.entity.UserOpertionsLog"></parameterMap>
+	<resultMap id="resultMap" type="com.idp.web.log.entity.UserOpertionsLog">
+		<result property="id" column="id"/>
+		<result property="datetime" column="datetime"/>
+		<result property="userId" column="user_id"/>
+		<result property="ipAddress" column="ip_address"/>
+		<result property="models" column="models"/>
+		<result property="action" column="action"/>
+		<result property="result" column="result"/>
+		<result property="message" column="message"/>
+		<result property="sysUserName" column="name"/>
+	</resultMap>
+	
+	<sql id="columnSql">
+		<trim suffixOverrides=",">
+			t.id,
+			t.datetime,
+			t.user_id,
+			t.ip_address,
+			t.models,
+			t.action,
+			t.result,
+			t.message,
+			u.name,
+	 	</trim>
+	</sql>
+	
+	<select id="find" parameterMap="parameterMap" resultMap="resultMap">
+		select
+			<include refid="columnSql"></include>
+		from user_opertions_log t left join sys_user u on u.id = t.user_id
+		<where>
+			<if test="datetimeStart != null and datetimeStart != ''">
+				and t.datetime >= #{datetimeStart}
+			</if>
+			<if test="datetimeEnd != null and datetimeEnd != ''">
+				and t.datetime <![CDATA[<]]> #{datetimeEnd} 
+			</if>
+			<if test="userId != null and userId != ''">
+				and t.user_id = #{userId}			
+			</if>
+			<if test="ipAddress != null and ipAddress != ''">
+				and t.ip_address like concat('%',#{ipAddress},'%')
+			</if>
+			<if test="models != null and models != ''">
+				and t.models like concat('%',#{models},'%')
+			</if>
+			<if test="action != null and action != ''">
+				and t.action like concat('%',#{action},'%')
+			</if>
+			<if test="result != null and result != ''">
+				and t.result like concat('%',#{result},'%')
+			</if>
+			<if test="message != null and message != ''">
+				and t.message like concat('%',#{message},'%')
+			</if>
+		</where>
+	</select>
+	
+	<select id="getById" parameterType="java.lang.String" resultMap="resultMap">
+		select
+			<include refid="columnSql"></include>
+		from user_opertions_log t
+		left join sys_user u on u.id = t.user_id
+		where t.id = #{value}
+	</select>
+	
+	<insert id="add" parameterMap="parameterMap">
+		insert into user_opertions_log
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			id,
+			datetime,
+			user_id,
+			ip_address,
+			models,
+			action,
+			result,
+			message,
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			#{id},
+			#{datetime},
+			#{sysUser.id},
+			#{ipAddress},
+			#{models},
+			#{action},
+			#{result},
+			#{message},
+		</trim>
+	</insert>
+	
+	<insert id="batchAdd" parameterType="java.util.List">
+		insert into user_opertions_log
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			id,
+			datetime,
+			user_id,
+			ip_address,
+			models,
+			action,
+			result,
+			message,
+		</trim>
+		values
+		<foreach collection="list" item="item" separator=",">
+			<trim prefix="(" suffix=")" suffixOverrides=",">
+				#{item.id},
+				#{item.datetime},
+				#{item.sysUser.id},
+				#{item.ipAddress},
+				#{item.models},
+				#{item.action},
+				#{item.result},
+				#{item.message},
+			</trim>
+		</foreach>
+	</insert>
+	
+	<update id="update" parameterMap="parameterMap">
+		update user_opertions_log
+		<set>
+			datetime = #{datetime},
+			user_id = #{userId},
+			ip_address = #{ipAddress},
+			models = #{models},
+			action = #{action},
+			result = #{result},
+			message = #{message},
+		</set>
+		where id = #{id}
+	</update>
+	
+	<update id="updateNotNull" parameterMap="parameterMap">
+		update user_opertions_log
+		<set>
+			<if test="datetime != null">
+			datetime = #{datetime},
+			</if>
+			<if test="userId != null">
+			user_id = #{sysUser.id},
+			</if>
+			<if test="ipAddress != null">
+			ip_address = #{ipAddress},
+			</if>
+			<if test="models != null">
+			models = #{models},
+			</if>
+			<if test="action != null">
+			action = #{action},
+			</if>
+			<if test="result != null">
+			result = #{result},
+			</if>
+			<if test="message != null">
+			message = #{message},
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete" parameterType="java.lang.String">
+		delete from user_opertions_log where id = #{value}
+	</delete>
+	
+	<delete id="batchDelete" parameterType="java.util.List">
+		delete from user_opertions_log where id in
+		<foreach collection="list" item="item" open="(" close=")" separator=",">
+			#{item}
+		</foreach>
+	</delete>
+	
+</mapper>

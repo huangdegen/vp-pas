@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.idp.web.assessment.dao.AssessmentDao">
+
+    <parameterMap id="parameterMap" type="com.idp.web.assessment.entity.Assessment"></parameterMap>
+    <resultMap id="resultMap" type="com.idp.web.assessment.entity.Assessment">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="orgId" column="org_id"/>
+        <result property="orgName" column="org_name"/>
+        <result property="roleId" column="role_id"/>
+        <result property="roleName" column="role_name"/>
+        <result property="pasMonth" column="pas_month"/>
+        <result property="address" column="address"/>
+        <result property="rotation" column="rotation"/>
+        <result property="projectsCode" column="projects"/>
+        <result property="projects" column="projects"/>
+        <result property="monthContent" column="month_content"/>
+        <result property="teamworkContent" column="teamwork_content"/>
+        <result property="teamScoring" column="team_scoring"/>
+        <result property="selfScoring" column="self_scoring"/>
+        <result property="leadeScore" column="leade_score"/>
+        <result property="comprehensiveScore" column="comprehensive_score"/>
+        <result property="comment" column="comment"/>
+        <result property="ranking" column="ranking"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createUser" column="create_user"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateUser" column="update_user"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="isCommit" column="is_commit"/>
+        <result property="scoreUserId" column="score_user_id"/>
+        <association property="userCode" column="user_id" select="getUserById"></association>
+        <association property="userParentCode" column="user_id" select="getParentUserById"></association>
+    </resultMap>
+
+    <sql id="columnSql">
+        <trim suffixOverrides=",">
+            t.id,
+            t.user_id,
+            t.user_name,
+            t.org_id,
+            t.org_name,
+            t.role_id,
+            t.role_name,
+            t.pas_month,
+            t.address,
+            t.rotation,
+            t.projects,
+            t.month_content,
+            t.teamwork_content,
+            t.team_scoring,
+            t.self_scoring,
+            t.leade_score,
+            t.comprehensive_score,
+            t.comment,
+            t.ranking,
+            t.del_flag,
+            t.create_user,
+            t.create_date,
+            t.update_user,
+            t.update_date,
+            t.is_commit,
+            t.score_user_id,
+        </trim>
+    </sql>
+
+    <sql id="columnSqls">
+        <trim suffixOverrides=",">
+            t.id,
+            t.user_id,
+            t.user_name,
+            t.org_id,
+            t.org_name,
+            t.role_id,
+            t.role_name,
+            t.pas_month,
+            t.address,
+            t.rotation,
+            t.projects,
+            t.month_content,
+            t.teamwork_content,
+            t.team_scoring,
+            t.self_scoring,
+            t.leade_score,
+            t.comprehensive_score,
+            t.comment,
+            t.ranking,
+            t.del_flag,
+            t.create_user,
+            t.create_date,
+            t.update_user,
+            t.update_date,
+            t.is_commit,
+            t.score_user_id,
+            (case rotation when '0' then @rowno:=@rowno+1 when '1' then '' end ) as rank,
+        </trim>
+    </sql>
+    <select id="find" parameterMap="parameterMap" resultMap="resultMap">
+        select
+        <include refid="columnSql"></include>
+        from vp_assessment t
+        <where>
+            <if test="userName != null and userName != ''">
+                AND t.user_name LIKE CONCAT ('%',#{userName},'%')
+            </if>
+            <if test="orgId != null and orgId != ''">
+                and LEFT(t.org_id,LENGTH(#{orgId})) = #{orgId}
+            </if>
+            <if test="pasMonth != null and pasMonth != ''">
+                and t.pas_month = #{pasMonth}
+            </if>
+            <if test="address != null and address != ''">
+                and t.address = #{address}
+            </if>
+            <if test="projects != null and projects != ''">
+                AND t.projects LIKE CONCAT ('%',#{projects},'%')
+            </if>
+            <if test="userCode!=null and userCode!= ''">
+                AND EXISTS (
+                SELECT 1 FROM sys_user u where u.id = t.user_id and LEFT(u.user_code,LENGTH(#{userCode})) = #{userCode}
+                )
+            </if>
+        </where>
+        order by pas_month desc
+    </select>
+
+    <select id="findByPageStatisticsMonthExport" parameterMap="parameterMap" resultMap="resultMap">
+        SELECT
+        <include refid="columnSqls"></include>
+        FROM
+        vp_assessment t,(select @rowno:=0) ta
+        <where>
+            <if test="userName != null and userName != ''">
+                AND t.user_name LIKE CONCAT ('%',#{userName},'%')
+            </if>
+            <if test="orgId != null and orgId != ''">
+                and LEFT(t.org_id,LENGTH(#{orgId})) = #{orgId}
+            </if>
+            <if test="pasMonth != null and pasMonth != ''">
+                and t.pas_month = #{pasMonth}
+            </if>
+            <if test="address != null and address != ''">
+                and t.address = #{address}
+            </if>
+            <if test="projects != null and projects != ''">
+                AND t.projects LIKE CONCAT ('%',#{projects},'%')
+            </if>
+        </where>
+        order by t.comprehensive_score desc
+    </select>
+
+
+    <select id="getById" parameterType="java.lang.Integer" resultMap="resultMap">
+        select
+        <include refid="columnSql"></include>
+        from vp_assessment t
+        where t.id = #{value}
+    </select>
+    <select id="getMentById" parameterType="java.lang.String" resultMap="resultMap">
+        select
+        <include refid="columnSql"></include>
+        from vp_assessment t
+        where t.id = #{value}
+    </select>
+
+    <select id="getMentByIds" parameterType="java.lang.String" resultMap="resultMap">
+        select
+        <include refid="columnSql"></include>
+        from vp_assessment t
+        where t.user_id = #{value}
+    </select>
+
+
+    <select id="getByUserIdAssessment" resultType="java.lang.Integer" parameterType="java.lang.String">
+        select
+        count(1)
+        from vp_assessment t
+        where t.user_id = #{userId} and t.pas_month = #{pasMonth}
+    </select>
+
+
+    <select id="getUserById" parameterType="java.lang.String" resultType="java.lang.String">
+        select
+              t.user_code
+        from sys_user t
+        where t.id = #{value}
+    </select>
+
+    <select id="getParentUserById" parameterType="java.lang.String" resultType="java.lang.String">
+        select t.user_code
+        from sys_user t
+        where t.id = (select t1.parent_id from sys_user t1 where id = #{value} )
+    </select>
+
+    <insert id="add" parameterMap="parameterMap">
+        insert into vp_assessment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            user_id,
+            user_name,
+            org_id,
+            org_name,
+            role_id,
+            role_name,
+            pas_month,
+            address,
+            rotation,
+            projects,
+            month_content,
+            teamwork_content,
+            team_scoring,
+            self_scoring,
+            leade_score,
+            comprehensive_score,
+            comment,
+            ranking,
+            del_flag,
+            create_user,
+            update_user,
+            update_date,
+            is_commit,
+            score_user_id,
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id},
+            #{userId},
+            #{userName},
+            #{orgId},
+            #{orgName},
+            #{roleId},
+            #{roleName},
+            #{pasMonth},
+            #{address},
+            #{rotation},
+            #{projects},
+            #{monthContent},
+            #{teamworkContent},
+            #{teamScoring},
+            #{selfScoring},
+            #{leadeScore},
+            #{comprehensiveScore},
+            #{comment},
+            #{ranking},
+            #{delFlag},
+            #{createUser},
+            #{updateUser},
+            #{updateDate},
+            #{isCommit},
+            #{scoreUserId},
+        </trim>
+    </insert>
+
+    <insert id="batchAdd" parameterType="java.util.List">
+        insert into vp_assessment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            user_id,
+            user_name,
+            org_id,
+            org_name,
+            role_id,
+            role_name,
+            pas_month,
+            address,
+            rotation,
+            projects,
+            month_content,
+            teamwork_content,
+            team_scoring,
+            self_scoring,
+            leade_score,
+            comprehensive_score,
+            comment,
+            ranking,
+            del_flag,
+            create_user,
+            update_user,
+            update_date,
+            is_commit,
+            score_user_id,
+        </trim>
+        values
+        <foreach collection="list" item="item" separator=",">
+            <trim prefix="(" suffix=")" suffixOverrides=",">
+                #{item.id},
+                #{item.userId},
+                #{item.userName},
+                #{item.orgId},
+                #{item.orgName},
+                #{item.roleId},
+                #{item.roleName},
+                #{item.pasMonth},
+                #{item.address},
+                #{item.rotation},
+                #{item.projects},
+                #{item.monthContent},
+                #{item.teamworkContent},
+                #{item.teamScoring},
+                #{item.selfScoring},
+                #{item.leadeScore},
+                #{item.comprehensiveScore},
+                #{item.comment},
+                #{item.ranking},
+                #{item.delFlag},
+                #{item.createUser},
+                #{item.updateUser},
+                #{item.updateDate},
+                #{item.isCommit},
+                #{item.scoreUserId},
+            </trim>
+        </foreach>
+    </insert>
+
+    <update id="update" parameterMap="parameterMap">
+        update vp_assessment
+        <set>
+            user_id = #{userId},
+            user_name = #{userName},
+            org_id = #{orgId},
+            org_name = #{orgName},
+            role_id = #{roleId},
+            role_name = #{roleName},
+            pas_month = #{pasMonth},
+            address = #{address},
+            rotation = #{rotation},
+            projects = #{projects},
+            month_content = #{monthContent},
+            teamwork_content = #{teamworkContent},
+            team_scoring = #{teamScoring},
+            self_scoring = #{selfScoring},
+            leade_score = #{leadeScore},
+            comprehensive_score = #{comprehensiveScore},
+            comment = #{comment},
+            ranking = #{ranking},
+            del_flag = #{delFlag},
+            create_user = #{createUser},
+            create_date = #{createDate},
+            update_user = #{updateUser},
+            update_date = #{updateDate},
+            is_commit =#{isCommit},
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="updateNotNull" parameterMap="parameterMap">
+        update vp_assessment
+        <set>
+            <if test="userId != null">
+                user_id = #{userId},
+            </if>
+            <if test="userName != null">
+                user_name = #{userName},
+            </if>
+            <if test="orgId != null">
+                org_id = #{orgId},
+            </if>
+            <if test="orgName != null">
+                org_name = #{orgName},
+            </if>
+            <if test="roleId != null">
+                role_id = #{roleId},
+            </if>
+            <if test="roleName != null">
+                role_name = #{roleName},
+            </if>
+            <if test="pasMonth != null">
+                pas_month = #{pasMonth},
+            </if>
+            <if test="address != null">
+                address = #{address},
+            </if>
+            <if test="rotation != null">
+                rotation = #{rotation},
+            </if>
+            <if test="projects != null">
+                projects = #{projects},
+            </if>
+            <if test="monthContent != null">
+                month_content = #{monthContent},
+            </if>
+            <if test="teamworkContent != null">
+                teamwork_content = #{teamworkContent},
+            </if>
+            <if test="teamScoring != null">
+                team_scoring = #{teamScoring},
+            </if>
+            <if test="selfScoring != null">
+                self_scoring = #{selfScoring},
+            </if>
+            <if test="leadeScore != null">
+                leade_score = #{leadeScore},
+            </if>
+            <if test="comprehensiveScore != null">
+                comprehensive_score = #{comprehensiveScore},
+            </if>
+            <if test="comment != null">
+                comment = #{comment},
+            </if>
+            <if test="ranking != null">
+                ranking = #{ranking},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag},
+            </if>
+            <if test="createUser != null">
+                create_user = #{createUser},
+            </if>
+            <if test="createDate != null">
+                create_date = #{createDate},
+            </if>
+            <if test="updateUser != null">
+                update_user = #{updateUser},
+            </if>
+            <if test="updateDate != null">
+                update_date = #{updateDate},
+            </if>
+            <if test="isCommit != null">
+                is_commit = #{isCommit},
+            </if>
+            <if test="scoreUserId != null">
+                score_user_id = #{scoreUserId},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="java.lang.Integer">
+		delete from vp_assessment where id = #{value}
+	</delete>
+    <delete id="del" parameterType="java.lang.String">
+        delete from vp_assessment where id = #{value}
+    </delete>
+
+    <delete id="batchDelete" parameterType="java.util.List">
+        delete from vp_assessment where id in
+        <foreach collection="list" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </delete>
+</mapper>

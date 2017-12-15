@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.idp.web.keywords.dao.KeywordsDao">
+
+	<parameterMap id="parameterMap" type="com.idp.web.keywords.entity.Keywords"></parameterMap>
+	<resultMap id="resultMap" type="com.idp.web.keywords.entity.Keywords">
+		<result property="keywordsId" column="keywords_id"/>
+		<result property="keywordsName" column="keywords_name"/>
+		<result property="keywordsTime" column="keywords_time"/>
+	</resultMap>
+	
+	<sql id="columnSql">
+		<trim suffixOverrides=",">
+			t.keywords_id,
+			t.keywords_name,
+			t.keywords_time,
+	 	</trim>
+	</sql>
+	
+	<select id="find" parameterMap="parameterMap" resultMap="resultMap">
+		select
+			<include refid="columnSql"></include>
+		from keywords t
+		<where>
+			<if test="keywordsId != null and keywordsId != ''">
+				and t.keywords_id = #{keywordsId}			
+			</if>
+			<if test="keywordsName != null and keywordsName != ''">
+				and t.keywords_name like concat('%',#{keywordsName},'%')
+			</if>
+			<if test="keywordsTimeStart != null and keywordsTimeStart != ''">
+				and t.keywords_time >= #{keywordsTimeStart}
+			</if>
+			<if test="keywordsTimeEnd != null and keywordsTimeEnd != ''">
+				and t.keywords_time <![CDATA[<]]> #{keywordsTimeEnd} 
+			</if>
+		</where>
+	</select>
+	
+	<select id="getById" parameterType="java.lang.Integer" resultMap="resultMap">
+		select
+			<include refid="columnSql"></include>
+		from keywords t
+		where t.keywords_id = #{value}
+	</select>
+	
+	<insert id="add" parameterMap="parameterMap">
+		insert into keywords
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			keywords_id,
+			keywords_name,
+			keywords_time,
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			#{keywordsId},
+			#{keywordsName},
+			#{keywordsTime},
+		</trim>
+	</insert>
+	
+	<insert id="batchAdd" parameterType="java.util.List">
+		insert into keywords
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			keywords_id,
+			keywords_name,
+			keywords_time,
+		</trim>
+		values
+		<foreach collection="list" item="item" separator=",">
+			<trim prefix="(" suffix=")" suffixOverrides=",">
+				#{item.keywordsId},
+				#{item.keywordsName},
+				#{item.keywordsTime},
+			</trim>
+		</foreach>
+	</insert>
+	
+	<update id="update" parameterMap="parameterMap">
+		update keywords
+		<set>
+			keywords_name = #{keywordsName},
+			keywords_time = #{keywordsTime},
+		</set>
+		where keywords_id = #{keywordsId}
+	</update>
+	
+	<update id="updateNotNull" parameterMap="parameterMap">
+		update keywords
+		<set>
+			<if test="keywordsName != null">
+			keywords_name = #{keywordsName},
+			</if>
+			<if test="keywordsTime != null">
+			keywords_time = #{keywordsTime},
+			</if>
+		</set>
+		where keywords_id = #{keywordsId}
+	</update>
+	
+	<delete id="delete" parameterType="java.lang.String">
+		delete from keywords where keywords_id = #{value}
+	</delete>
+	
+	<delete id="batchDelete" parameterType="java.util.List">
+		delete from keywords where keywords_id in
+		<foreach collection="list" item="item" open="(" close=")" separator=",">
+			#{item}
+		</foreach>
+	</delete>
+	
+</mapper>

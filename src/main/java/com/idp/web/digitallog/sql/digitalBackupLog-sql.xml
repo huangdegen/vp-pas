@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.idp.web.digitallog.dao.DigitalBackupLogDao">
+
+	<parameterMap id="parameterMap" type="com.idp.web.digitallog.entity.DigitalBackupLog"></parameterMap>
+	<resultMap id="resultMap" type="com.idp.web.digitallog.entity.DigitalBackupLog">
+		<result property="id" column="id"/>
+		<result property="time" column="time"/>
+		<result property="storeUrl" column="store_url"/>
+		<result property="fileName" column="file_name"/>
+	</resultMap>
+	
+	<sql id="columnSql">
+		<trim suffixOverrides=",">
+			t.id,
+			t.time,
+			t.store_url,
+			t.file_name,
+	 	</trim>
+	</sql>
+	
+	<select id="find" parameterMap="parameterMap" resultMap="resultMap">
+		select
+			<include refid="columnSql"></include>
+		from digital_backup_log t
+		<where>
+			<if test="timeStart != null and timeStart != ''">
+				and t.time >= #{timeStart}
+			</if>
+			<if test="timeEnd != null and timeEnd != ''">
+				and t.time <![CDATA[<]]> #{timeEnd} 
+			</if>
+			<if test="fileName != null and fileName != ''">
+				and t.file_name like concat('%',#{fileName},'%')
+			</if>
+			
+		</where>
+		order by t.time desc
+	</select>
+	
+	<select id="getById" parameterType="java.lang.String" resultMap="resultMap">
+		select
+			<include refid="columnSql"></include>
+		from digital_backup_log t
+		where t.id = #{value}
+	</select>
+	
+	<insert id="add" parameterMap="parameterMap">
+		insert into digital_backup_log
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			id,
+			time,
+			store_url,
+			file_name,
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			#{id},
+			#{time},
+			#{storeUrl},
+			#{fileName},
+		</trim>
+	</insert>
+	
+	<insert id="batchAdd" parameterType="java.util.List">
+		insert into digital_backup_log
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			id,
+			time,
+			store_url,
+			file_name,
+		</trim>
+		values
+		<foreach collection="list" item="item" separator=",">
+			<trim prefix="(" suffix=")" suffixOverrides=",">
+				#{item.id},
+				#{item.time},
+				#{item.storeUrl},
+				#{item.fileName},
+			</trim>
+		</foreach>
+	</insert>
+	
+	<update id="update" parameterMap="parameterMap">
+		update digital_backup_log
+		<set>
+			time = #{time},
+			store_url = #{storeUrl},
+			file_name = #{fileName},
+		</set>
+		where id = #{id}
+	</update>
+	
+	<update id="updateNotNull" parameterMap="parameterMap">
+		update digital_backup_log
+		<set>
+			<if test="time != null">
+			time = #{time},
+			</if>
+			<if test="storeUrl != null">
+			store_url = #{storeUrl},
+			</if>
+			<if test="fileName != null">
+			file_name = #{fileName},
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete" parameterType="java.lang.String">
+		delete from digital_backup_log where id = #{value}
+	</delete>
+	
+	<delete id="batchDelete" parameterType="java.util.List">
+		delete from digital_backup_log where id in
+		<foreach collection="list" item="item" open="(" close=")" separator=",">
+			#{item}
+		</foreach>
+	</delete>
+	
+</mapper>

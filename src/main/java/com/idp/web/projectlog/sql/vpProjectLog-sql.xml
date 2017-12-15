@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.idp.web.projectlog.dao.VpProjectLogDao">
+
+	<parameterMap id="parameterMap" type="com.idp.web.projectlog.entity.VpProjectLog"></parameterMap>
+	<resultMap id="resultMap" type="com.idp.web.projectlog.entity.VpProjectLog">
+		<result property="id" column="id"/>
+		<result property="projectName" column="project_name"/>
+		<result property="projectManger" column="project_manger"/>
+		<result property="projectMember" column="project_member"/>
+		<result property="projectAddress" column="project_address"/>
+		<result property="projectDescribe" column="project_describe"/>
+		<result property="projectStartTime" column="project_start_time"/>
+		<result property="projectEndTime" column="project_end_time"/>
+		<result property="parentId" column="parent_id"/>
+		<result property="projectProgress" column="project_progress"/>
+		<result property="updateManger" column="update_manger"/>
+		<result property="updateDate" column="update_date"/>
+	</resultMap>
+	
+	<sql id="columnSql">
+		<trim suffixOverrides=",">
+			t.id,
+			t.project_name,
+			t.project_manger,
+			t.project_member,
+			t.project_address,
+			t.project_describe,
+			t.project_start_time,
+			t.project_end_time,
+			t.parent_id,
+			t.project_progress,
+			t.update_manger,
+			t.update_date,
+	 	</trim>
+	</sql>
+	
+	<select id="find" parameterMap="parameterMap" resultMap="resultMap">
+		select
+			<include refid="columnSql"></include>
+		from vp_project_log t
+		<where>
+			<if test="projectManger != null and projectManger != ''">
+				and t.project_manger like concat('%',#{projectManger},'%')
+			</if>
+			<if test="updateManger != null and updateManger != ''">
+				and t.update_manger like concat('%',#{updateManger},'%')
+			</if>
+		</where>
+	</select>
+	
+	<select id="getById" parameterType="java.lang.String" resultMap="resultMap">
+		select
+			<include refid="columnSql"></include>
+		from vp_project_log t
+		where t.id = #{value}
+	</select>
+	
+	<insert id="add" parameterMap="parameterMap">
+		insert into vp_project_log
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			id,
+			project_name,
+			project_manger,
+			project_member,
+			project_address,
+			project_describe,
+			project_start_time,
+			project_end_time,
+			parent_id,
+			project_progress,
+			update_manger,
+			update_date,
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			#{id},
+			#{projectName},
+			#{projectManger},
+			#{projectMember},
+			#{projectAddress},
+			#{projectDescribe},
+			#{projectStartTime},
+			#{projectEndTime},
+			#{parentId},
+			#{projectProgress},
+			#{updateManger},
+			#{updateDate},
+		</trim>
+	</insert>
+	
+	<insert id="batchAdd" parameterType="java.util.List">
+		insert into vp_project_log
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			id,
+			project_name,
+			project_manger,
+			project_member,
+			project_address,
+			project_describe,
+			project_start_time,
+			project_end_time,
+			parent_id,
+			project_progress,
+			update_manger,
+			update_date,
+		</trim>
+		values
+		<foreach collection="list" item="item" separator=",">
+			<trim prefix="(" suffix=")" suffixOverrides=",">
+				#{item.id},
+				#{item.projectName},
+				#{item.projectManger},
+				#{item.projectMember},
+				#{item.projectAddress},
+				#{item.projectDescribe},
+				#{item.projectStartTime},
+				#{item.projectEndTime},
+				#{item.parentId},
+				#{item.projectProgress},
+				#{item.updateManger},
+				#{item.updateDate},
+			</trim>
+		</foreach>
+	</insert>
+	
+	<update id="update" parameterMap="parameterMap">
+		update vp_project_log
+		<set>
+			project_name = #{projectName},
+			project_manger = #{projectManger},
+			project_member = #{projectMember},
+			project_address = #{projectAddress},
+			project_describe = #{projectDescribe},
+			project_start_time = #{projectStartTime},
+			project_end_time = #{projectEndTime},
+			parent_id = #{parentId},
+			project_progress = #{projectProgress},
+			update_manger = #{updateManger},
+			update_date = #{updateDate},
+		</set>
+		where id = #{id}
+	</update>
+	
+	<update id="updateNotNull" parameterMap="parameterMap">
+		update vp_project_log
+		<set>
+			<if test="projectName != null">
+			project_name = #{projectName},
+			</if>
+			<if test="projectManger != null">
+			project_manger = #{projectManger},
+			</if>
+			<if test="projectMember != null">
+			project_member = #{projectMember},
+			</if>
+			<if test="projectAddress != null">
+			project_address = #{projectAddress},
+			</if>
+			<if test="projectDescribe != null">
+			project_describe = #{projectDescribe},
+			</if>
+			<if test="projectStartTime != null">
+			project_start_time = #{projectStartTime},
+			</if>
+			<if test="projectEndTime != null">
+			project_end_time = #{projectEndTime},
+			</if>
+			<if test="parentId != null">
+			parent_id = #{parentId},
+			</if>
+			<if test="projectProgress != null">
+			project_progress = #{projectProgress},
+			</if>
+			<if test="updateManger != null">
+			update_manger = #{updateManger},
+			</if>
+			<if test="updateDate != null">
+			update_date = #{updateDate},
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete" parameterType="java.lang.String">
+		delete from vp_project_log where id = #{value}
+	</delete>
+	
+	<delete id="batchDelete" parameterType="java.util.List">
+		delete from vp_project_log where id in
+		<foreach collection="list" item="item" open="(" close=")" separator=",">
+			#{item}
+		</foreach>
+	</delete>
+	
+</mapper>
